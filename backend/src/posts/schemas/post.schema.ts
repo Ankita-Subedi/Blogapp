@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, HydratedDocument } from 'mongoose';
+import { HydratedDocument, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Post {
@@ -9,8 +9,8 @@ export class Post {
   @Prop({ required: true })
   content: string;
 
-  @Prop({ type: String, ref: 'User', required: true })
-  author: string;
+  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
+  author: Types.ObjectId;
 }
 
 export const PostSchema = SchemaFactory.createForClass(Post);

@@ -1,74 +1,157 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { Post, PostDocument } from './schemas/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
-import {
-  NotFoundException,
-  UnauthorizedException,
-  InternalServerErrorException,
-} from '@nestjs/common';
+import { GetPostWithAutherName } from './pipelines/get-post-with-auther.pipeline';
 
 @Injectable()
 export class PostService {
   constructor(@InjectModel(Post.name) private postModel: Model<PostDocument>) {}
 
-  async create(createPostDto: CreatePostDto, author: string): Promise<Post> {
+  //CREATE
+  async create(
+    createPostDto: CreatePostDto,
+    author: Types.ObjectId,
+  ): Promise<{ message: string; blog: Post }> {
     try {
-      const data = await this.postModel.create({ ...createPostDto, author });
-      return data;
+      const blog = await this.postModel.create({ ...createPostDto, author });
+      return {
+        message: 'Post created successfully',
+        blog,
+      };
     } catch (error) {
       throw new BadRequestException(error.message);
     }
   }
 
-  async findAll(): Promise<Post[]> {
-    return this.postModel.find().exec();
+  //FIND ALL POST OF ALL USERS
+  async findAll(
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    posts: any[];
+    metadata: {
+      totalPages: number;
+      totalPosts: number;
+      page: number;
+      limit: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+
+    const totalPosts = await this.postModel.countDocuments(); // Get total number of posts
+    const totalPages = Math.ceil(totalPosts / limit); // Calculate total pages
+
+    const posts = await this.postModel
+      .aggregate(GetPostWithAutherName)
+      //.populate('author', 'name')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return {
+      posts,
+      metadata: {
+        totalPages,
+        totalPosts,
+        page,
+        limit,
+      },
+    }; // Returning posts with pagination info
   }
 
+  //FIND ALL POST OF PARTICULAR USER
+  async findAllByUser(
+    userId: string,
+    page: number = 1,
+    limit: number = 10,
+  ): Promise<{
+    posts: Post[];
+    metadata: {
+      totalPages: number;
+      totalPosts: number;
+      page: number;
+      limit: number;
+    };
+  }> {
+    const skip = (page - 1) * limit;
+
+    const totalPosts = await this.postModel.countDocuments({ author: userId }); // Total posts by user
+    const totalPages = Math.ceil(totalPosts / limit); // Calculate total pages
+
+    const posts = await this.postModel
+      .find({ author: userId })
+      .populate('author', 'name')
+      .skip(skip)
+      .limit(limit)
+      .sort({ createdAt: -1 })
+      .exec();
+
+    return {
+      posts,
+      metadata: {
+        totalPages,
+        totalPosts,
+        page,
+        limit,
+      },
+    }; // Returning user-specific posts with pagination info
+  }
+
+  //FIND POST BY ID
   async findById(id: string): Promise<Post | null> {
     return this.postModel.findById(id).exec();
   }
 
+  //UPDATE
   async update(
     id: string,
     updatePostDto: Partial<CreatePostDto>,
     userId: string,
-  ): Promise<Post | null> {
-    const post = await this.postModel.findById(id);
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
-
-    // Check if the logged-in user is the author of the post
-    if (post.author !== userId) {
-      throw new UnauthorizedException('You are not the owner of this post');
-    }
-
+  ) {
     try {
-      return await this.postModel
-        .findByIdAndUpdate(id, updatePostDto, { new: true })
+      const data = await this.postModel
+        .findOneAndUpdate({ _id: id, author: userId }, updatePostDto, {
+          new: true,
+        })
         .exec();
+      if (!data) throw new BadRequestException('Error updating post');
+      return {
+        message: `Post with id : ${id} updated successfully`,
+        data,
+      };
     } catch (error) {
-      throw new InternalServerErrorException('Could not update post');
+      throw new BadRequestException(error.message);
     }
   }
 
-  async delete(id: string, userId: string): Promise<Post | null> {
-    const post = await this.postModel.findById(id);
-    if (!post) {
-      throw new NotFoundException('Post not found');
-    }
-
-    // Check if the logged-in user is the author of the post
-    if (post.author !== userId) {
-      throw new UnauthorizedException('You are not the owner of this post');
-    }
-
+  //DELETE
+  async delete(id: string, userId: string) {
     try {
-      return await this.postModel.findByIdAndDelete(id);
+      if (!Types.ObjectId.isValid(id)) {
+        throw new BadRequestException(
+          'Invalid post ID format. Must be a 24-character hex string.',
+        );
+      }
+
+      const objectId = new Types.ObjectId(id);
+      const data = await this.postModel.findOneAndDelete({
+        _id: objectId,
+        author: userId,
+      });
+      if (!data) throw new NotFoundException('Error deleting post');
+      return {
+        message: `Post with id : ${id} deleted successfully`,
+        data,
+      };
     } catch (error) {
-      throw new InternalServerErrorException('Failed to delete the post');
+      throw new BadRequestException(error.message);
     }
   }
 }

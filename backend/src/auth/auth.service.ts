@@ -17,14 +17,25 @@ export class AuthService {
 
   async signup(signupDto: SignupDto) {
     const newUser = await this.userService.createUser(signupDto);
-    const token = this.generateJwtToken(newUser);
-    return { user: newUser, token };
+    // Convert Mongoose document to plain object
+    const userPlain = newUser.toObject();
+    const token = this.generateJwtToken(userPlain);
+    return {
+      message: 'User created successfully',
+      user: userPlain,
+      token: token,
+    };
   }
 
   async login(loginDto: LoginDto) {
     const user = await this.userService.loginUser(loginDto);
-    const token = this.generateJwtToken(user);
-    return { user, token };
+    const userPlain = user.toObject();
+    const token = this.generateJwtToken(userPlain);
+    return {
+      message: 'logged-in successfully',
+      user: userPlain,
+      token: token,
+    };
   }
 
   // Helper function to generate JWT token
