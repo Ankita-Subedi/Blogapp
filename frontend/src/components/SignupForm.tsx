@@ -24,6 +24,7 @@ export default function SignupForm() {
     signup(data)
       .then((res) => {
         console.log(res);
+        localStorage.setItem("token", res.token);
         toast.success("Signup successful!");
         router.push("/home");
       })

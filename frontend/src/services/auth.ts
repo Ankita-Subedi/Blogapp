@@ -9,6 +9,10 @@ export const signup = async (data: z.infer<typeof signupSchema>) => {
 };
 
 export const login = async (data: z.infer<typeof loginSchema>) => {
-  const res = await instance.post("/auth/login", data);
+  const res = await instance.post<ILoginResponse>("/auth/login", data);
   return res.data;
 };
+
+interface ILoginResponse {
+  token: string;
+}

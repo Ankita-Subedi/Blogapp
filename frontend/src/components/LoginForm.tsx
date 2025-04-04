@@ -24,6 +24,7 @@ export default function LoginForm() {
     login(data)
       .then((res) => {
         console.log(res);
+        localStorage.setItem("token", res.token);
         router.push("/home");
         toast.success("Login successful!");
       })
