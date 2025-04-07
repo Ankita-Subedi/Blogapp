@@ -1,7 +1,12 @@
+import MyPosts from "@/features/MyPosts";
 import React from "react";
 
 const Page = () => {
-  return <div>Edit your posts from here</div>;
+  return (
+    <>
+      <MyPosts />
+    </>
+  );
 };
 
 export default Page;

@@ -45,7 +45,7 @@ export class PostController {
     @Query('limit') limit: number = 10,
   ) {
     return this.postService.findAllByUser(
-      req.user.sub,
+      new Types.ObjectId(req.user.sub),
       Number(page),
       Number(limit),
     );

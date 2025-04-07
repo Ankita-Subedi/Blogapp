@@ -68,7 +68,7 @@ export class PostService {
 
   //FIND ALL POST OF PARTICULAR USER
   async findAllByUser(
-    userId: string,
+    userId: Types.ObjectId,
     page: number = 1,
     limit: number = 10,
   ): Promise<{

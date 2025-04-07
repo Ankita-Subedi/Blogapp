@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { fetchPosts, IPost } from "@/services/post";
+import { fetchMyPosts, IPost } from "@/services/post";
 import { toast } from "react-toastify";
 import BlogCard from "@/components/BlogCard";
 import Pagination from "@/components/Pagination"; // Import Pagination
 import { useSearchParams } from "next/navigation";
 
-const PostsPage = () => {
+const MyPosts = () => {
   const [posts, setPosts] = useState<IPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -19,8 +19,16 @@ const PostsPage = () => {
 
   useEffect(() => {
     const getPosts = async () => {
+      const token = localStorage.getItem("token");
+      console.log("Token:", token);
+
+      if (!token) {
+        window.location.href = "/login";
+        toast.error("You need to log in to view your posts!");
+        throw new Error("No token found. Please login.");
+      }
       try {
-        const fetchedPosts = await fetchPosts(currentPage); // Fetch posts for the current page
+        const fetchedPosts = await fetchMyPosts(currentPage); // Fetch posts for the current page
         setPosts(fetchedPosts.posts);
         setTotalPages(fetchedPosts.metadata.totalPages); // Set total pages
       } catch (err: any) {
@@ -46,7 +54,7 @@ const PostsPage = () => {
           <BlogCard
             key={post._id}
             title={post.title}
-            author={post.author || "Unknown Author"}
+            author={post.author?.name || "Unknown Author"} // Access author name properly
             description={post.content}
             blogDetailRoute={`/posts/${post._id}`}
           />
@@ -57,4 +65,4 @@ const PostsPage = () => {
   );
 };
 
-export default PostsPage;
+export default MyPosts;

@@ -1,5 +1,4 @@
 "use client";
-
 import Navbar from "@/components/Navbar";
 import "../globals.css";
 import { useLoggedIn } from "@/hooks/useLoggedIn";
@@ -12,10 +11,11 @@ export default function RootLayout({
 }>) {
   const { isLoggedIn, loading } = useLoggedIn();
   if (loading) return <>Loading...</>;
-  if (!isLoggedIn) redirect("/login");
+  if (isLoggedIn) redirect("/home");
+
   return (
     <>
-      <Navbar loggedIn />
+      <Navbar loggedIn={false} />
       <div className="mx-12 lg:mx-16">{children}</div>;
     </>
   );
