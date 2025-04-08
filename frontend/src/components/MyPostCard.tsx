@@ -5,12 +5,14 @@ import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
-const BlogCard = ({
+const MyPostCard = ({
   img = "https://images.pexels.com/photos/31050187/pexels-photo-31050187/free-photo-of-seagulls-on-a-pebble-beach-by-the-water.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load",
   title = "Title",
   author = "Author",
   description = "Description",
   blogDetailRoute,
+  trashApi,
+  editApi,
 }) => {
   return (
     <div className="flex flex-col gap-2.5 mb-5 items-center md:flex-row md:gap-4 md:my-10">
@@ -39,9 +41,19 @@ const BlogCard = ({
             </Link>
           )}
         </div>
+        <div className="flex gap-2 cursor- text-sm cursor-pointer">
+          <Trash
+            onClick={trashApi}
+            className="text-red-500 hover:scale-110 transition"
+          />
+          <Pencil
+            onClick={editApi}
+            className="text-blue-500 hover:scale-110 transition"
+          />
+        </div>
       </div>
     </div>
   );
 };
 
-export default BlogCard;
+export default MyPostCard;

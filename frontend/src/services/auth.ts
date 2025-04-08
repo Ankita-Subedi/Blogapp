@@ -1,6 +1,7 @@
 import instance from "@/lib/axios/instance";
 import { loginSchema } from "@/lib/validations/login";
 import { signupSchema } from "@/lib/validations/signup";
+import { ILoginResponse } from "@/Types/types";
 import { z } from "zod";
 
 export const signup = async (data: z.infer<typeof signupSchema>) => {
@@ -12,7 +13,3 @@ export const login = async (data: z.infer<typeof loginSchema>) => {
   const res = await instance.post<ILoginResponse>("/auth/login", data);
   return res.data;
 };
-
-interface ILoginResponse {
-  token: string;
-}

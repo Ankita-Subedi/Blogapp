@@ -1,7 +1,8 @@
+import AddBlogForm from "@/components/AddBlogForm";
 import React from "react";
 
 const Page = () => {
-  return <div>Add your posts from here</div>;
+  return <AddBlogForm />;
 };
 
 export default Page;

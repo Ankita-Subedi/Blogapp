@@ -48,7 +48,7 @@ const PostsPage = () => {
             title={post.title}
             author={post.author || "Unknown Author"}
             description={post.content}
-            blogDetailRoute={`/posts/${post._id}`}
+            blogDetailRoute={`/post-detail/${post._id}`}
           />
         ))}
       </div>

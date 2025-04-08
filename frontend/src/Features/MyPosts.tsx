@@ -1,26 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { fetchMyPosts, IPost } from "@/services/post";
-import { toast } from "react-toastify";
-import BlogCard from "@/components/BlogCard";
-import Pagination from "@/components/Pagination"; // Import Pagination
+import MyPostCard from "@/components/MyPostCard";
+import Pagination from "@/components/Pagination";
+import { deletePost, fetchMyPosts } from "@/services/post"; // import delete API
+import { IPost } from "@/Types/types";
 import { useSearchParams } from "next/navigation";
+import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 
 const MyPosts = () => {
   const [posts, setPosts] = useState<IPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
-
-  // Get the current page from search params
   const currentPage = Number(searchParams.get("page") || 1);
   const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     const getPosts = async () => {
       const token = localStorage.getItem("token");
-      console.log("Token:", token);
 
       if (!token) {
         window.location.href = "/login";
@@ -28,9 +26,9 @@ const MyPosts = () => {
         throw new Error("No token found. Please login.");
       }
       try {
-        const fetchedPosts = await fetchMyPosts(currentPage); // Fetch posts for the current page
+        const fetchedPosts = await fetchMyPosts(currentPage);
         setPosts(fetchedPosts.posts);
-        setTotalPages(fetchedPosts.metadata.totalPages); // Set total pages
+        setTotalPages(fetchedPosts.metadata.totalPages);
       } catch (err: any) {
         setError(err?.response?.data?.message || "Something went wrong!");
         toast.error(error);
@@ -40,7 +38,32 @@ const MyPosts = () => {
     };
 
     getPosts();
-  }, [currentPage, error]); // Refetch posts if currentPage or error changes
+  }, [currentPage, error]);
+
+  // ✅ Handle Delete Function
+  const handleDelete = async (postId: string) => {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      window.location.href = "/login";
+      toast.error("You need to log in to view your posts!");
+      return;
+    }
+
+    try {
+      await deletePost(postId);
+      toast.success("Post deleted successfully!");
+      setPosts((prevPosts) => prevPosts.filter((post) => post._id !== postId));
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Failed to delete post!");
+    }
+  };
+
+  // ✅ Handle Edit Function
+  const handleEdit = (postId: string) => {
+    // Navigate to edit page
+    window.location.href = `/edit-post/${postId}`;
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -51,12 +74,14 @@ const MyPosts = () => {
       {error && <p>{error}</p>}
       <div>
         {posts.map((post) => (
-          <BlogCard
+          <MyPostCard
             key={post._id}
             title={post.title}
-            author={post.author?.name || "Unknown Author"} // Access author name properly
+            author={post.author?.name || "Unknown Author"}
             description={post.content}
-            blogDetailRoute={`/posts/${post._id}`}
+            blogDetailRoute={`/post-detail/${post._id}`}
+            trashApi={() => handleDelete(post._id)}
+            editApi={() => handleEdit(post._id)}
           />
         ))}
       </div>
@@ -64,5 +89,4 @@ const MyPosts = () => {
     </div>
   );
 };
-
 export default MyPosts;

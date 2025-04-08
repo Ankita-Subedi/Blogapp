@@ -21,7 +21,6 @@ export class AuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest<UserReq>();
     const authHeader = request.headers.authorization;
-
     // Check if authorization header exists and starts with "Bearer "
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       throw new UnauthorizedException('No token provided');
@@ -32,7 +31,7 @@ export class AuthGuard implements CanActivate {
     try {
       // Try verifying the token
 
-      const decoded = this.jwtService.decode(token);
+      const decoded = await this.jwtService.decode(token);
 
       // Attach decoded user data to the request
       request.user = decoded;

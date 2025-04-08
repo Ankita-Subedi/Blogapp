@@ -12,7 +12,7 @@ export default function RootLayout({
   const { isLoggedIn, loading } = useLoggedIn();
   if (loading) return <>Loading...</>;
   if (isLoggedIn) redirect("/home");
-
+  console.log(isLoggedIn);
   return (
     <>
       <Navbar loggedIn={false} />

@@ -9,18 +9,21 @@ import {
   UseGuards,
   Request,
   Query,
+  UseInterceptors,
 } from '@nestjs/common';
 import { PostService } from './posts.service';
 import { CreatePostDto } from './dto/create-post.dto';
 import { Post as PostModel } from './schemas/post.schema';
 import { AuthGuard, UserReq } from 'src/auth/guard/auth.guard';
 import { Types } from 'mongoose';
+import { AnyFilesInterceptor } from '@nestjs/platform-express';
 
 @Controller('posts')
 export class PostController {
   constructor(private postService: PostService) {}
 
   @UseGuards(AuthGuard)
+  @UseInterceptors(AnyFilesInterceptor())
   @PostMethod('create')
   async create(
     @Body() createPostDto: CreatePostDto,

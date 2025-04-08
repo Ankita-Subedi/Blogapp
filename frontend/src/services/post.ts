@@ -1,6 +1,7 @@
 import instance from "@/lib/axios/instance";
+import { IPostResponse, IPostData, ICreatePostResponse } from "@/Types/types";
 
-// This function fetches all posts and returns an IPostResponse
+// ALL POST OF ALL USERS
 export const fetchPosts = async (page: number = 1): Promise<IPostResponse> => {
   try {
     const res = await instance.get<IPostResponse>(`/posts?page=${page}`);
@@ -10,6 +11,7 @@ export const fetchPosts = async (page: number = 1): Promise<IPostResponse> => {
   }
 };
 
+//ALL POST BUT ONLY MY
 export const fetchMyPosts = async (
   page: number = 1
 ): Promise<IPostResponse> => {
@@ -34,22 +36,79 @@ export const fetchMyPosts = async (
   }
 };
 
-export interface IPost {
-  _id: string;
-  title: string;
-  content: string;
-  createdAt: string;
-  updatedAt: string;
-  author?: string;
-  name: string;
-}
+//CREATE A POST
+export const createPost = async (
+  iPostData: IPostData
+): Promise<ICreatePostResponse> => {
+  const token = localStorage.getItem("token");
 
-interface IPostResponse {
-  posts: IPost[];
-  metadata: {
-    totalPages: number;
-    totalPosts: number;
-    page: number;
-    limit: number;
-  };
-}
+  if (!token) {
+    throw new Error("No token found. Please login.");
+  }
+  try {
+    const formData = new FormData();
+    formData.append("title", iPostData.title);
+    formData.append("content", iPostData.content);
+    if (iPostData.image) {
+      formData.append("image", iPostData.image); // image must be appended
+    }
+
+    const res = await instance.post<ICreatePostResponse>(
+      `/posts/create`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+//FETCH POST BY ID
+export const fetchPostById = async (id: string) => {
+  try {
+    const response = await instance.get(`/posts/${id}`);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
+export const deletePost = async (id: string) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("No token found. Please login.");
+  }
+
+  const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decode JWT to extract userId
+  const userId = decodedToken.sub; // Assuming `sub` is the userId
+
+  try {
+    const response = await instance.delete(`/posts/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      data: { userId }, // Make sure userId is part of the request body
+    });
+
+    return response.data;
+  } catch (error) {
+    console.error("Error deleting post:", error);
+    throw error;
+  }
+};
+
+export const editPost = async (id: string, updatedData: any) => {
+  try {
+    const response = await instance.put(`/posts/${id}/update`, updatedData);
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};

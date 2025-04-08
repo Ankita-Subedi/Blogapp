@@ -106,7 +106,7 @@ export class PostService {
 
   //FIND POST BY ID
   async findById(id: string): Promise<Post | null> {
-    return this.postModel.findById(id).exec();
+    return this.postModel.findById(id).populate('author', 'name').exec();
   }
 
   //UPDATE
