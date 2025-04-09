@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/keys';
 import { validate } from './validator/env.validator';
 import { PostsModule } from './posts/posts.module';
+import { FileUploadModule } from './file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { PostsModule } from './posts/posts.module';
     AuthModule,
     UsersModule,
     PostsModule,
+    FileUploadModule,
   ],
   controllers: [],
   providers: [],

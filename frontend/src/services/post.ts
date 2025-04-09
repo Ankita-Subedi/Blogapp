@@ -79,23 +79,21 @@ export const fetchPostById = async (id: string) => {
   }
 };
 
+//DELETING A POST
 export const deletePost = async (id: string) => {
   const token = localStorage.getItem("token");
 
   if (!token) {
     throw new Error("No token found. Please login.");
   }
-
-  const decodedToken = JSON.parse(atob(token.split(".")[1])); // Decode JWT to extract userId
-  const userId = decodedToken.sub; // Assuming `sub` is the userId
-
+  console.log("This is before instance call");
   try {
     const response = await instance.delete(`/posts/${id}`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
-      data: { userId }, // Make sure userId is part of the request body
     });
+    console.log("This is after instance call", response);
 
     return response.data;
   } catch (error) {

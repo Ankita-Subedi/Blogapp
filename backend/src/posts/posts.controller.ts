@@ -1,37 +1,43 @@
 import {
-  Controller,
-  Get,
-  Post as PostMethod,
   Body,
-  Param,
-  Put,
+  Controller,
   Delete,
-  UseGuards,
-  Request,
+  Get,
+  Param,
+  Post as PostMethod,
+  Put,
   Query,
+  Request,
+  UploadedFile,
+  UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { PostService } from './posts.service';
-import { CreatePostDto } from './dto/create-post.dto';
-import { Post as PostModel } from './schemas/post.schema';
-import { AuthGuard, UserReq } from 'src/auth/guard/auth.guard';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Types } from 'mongoose';
-import { AnyFilesInterceptor } from '@nestjs/platform-express';
+import { AuthGuard, UserReq } from 'src/auth/guard/auth.guard';
+import { CreatePostDto } from './dto/create-post.dto';
+import { PostService } from './posts.service';
+import { Post as PostModel } from './schemas/post.schema';
 
 @Controller('posts')
 export class PostController {
   constructor(private postService: PostService) {}
 
   @UseGuards(AuthGuard)
-  @UseInterceptors(AnyFilesInterceptor())
+  @UseInterceptors(FileInterceptor('photo'))
   @PostMethod('create')
   async create(
     @Body() createPostDto: CreatePostDto,
+    @UploadedFile() file: Express.Multer.File,
     @Request() req: UserReq,
   ): Promise<{ message: string; blog: PostModel }> {
+    if (file) {
+      createPostDto.photo = file.filename; // Save the filename of the uploaded photo
+    }
     return this.postService.create(
       createPostDto,
       new Types.ObjectId(req.user.sub),
+      file,
     );
   }
 
@@ -61,11 +67,17 @@ export class PostController {
 
   @UseGuards(AuthGuard)
   @Put(':id/update')
+  @UseInterceptors(FileInterceptor('photo'))
   async update(
-    @Param('id') id: string,
+    @Param('id')
+    id: string,
     @Body() updatePostDto: Partial<CreatePostDto>,
+    @UploadedFile() file: Express.Multer.File,
     @Request() req: UserReq,
   ) {
+    if (file) {
+      updatePostDto.photo = file.filename; // Save the filename of the uploaded photo
+    }
     return this.postService.update(id, updatePostDto, req.user.sub);
   }
 

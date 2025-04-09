@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   BadRequestException,
   Injectable,
@@ -17,14 +18,32 @@ export class PostService {
   async create(
     createPostDto: CreatePostDto,
     author: Types.ObjectId,
+    file: Express.Multer.File,
   ): Promise<{ message: string; blog: Post }> {
     try {
+      if (file) {
+        const allowedMimeTypes = ['image/jpeg', 'image/png'];
+        if (!allowedMimeTypes.includes(file.mimetype)) {
+          throw new BadRequestException(
+            'Invalid file type. Only JPEG and PNG allowed.',
+          );
+        }
+        const maxSize = 5 * 1024 * 1024; // 5 MB
+        if (file.size > maxSize) {
+          throw new BadRequestException('File is too large! Max size is 5 MB.');
+        }
+
+        // Assuming you're saving the file in a 'uploads' folder
+        const filePath = `uploads/${file.filename}`;
+        createPostDto.photo = filePath; // Assigning the file path to the photo field
+      }
       const blog = await this.postModel.create({ ...createPostDto, author });
       return {
         message: 'Post created successfully',
         blog,
       };
     } catch (error) {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
       throw new BadRequestException(error.message);
     }
   }
@@ -133,6 +152,7 @@ export class PostService {
 
   //DELETE
   async delete(id: string, userId: string) {
+    console.log('Deleting post:', { id, userId });
     try {
       if (!Types.ObjectId.isValid(id)) {
         throw new BadRequestException(
@@ -141,9 +161,10 @@ export class PostService {
       }
 
       const objectId = new Types.ObjectId(id);
+      const userObjectId = new Types.ObjectId(userId);
       const data = await this.postModel.findOneAndDelete({
         _id: objectId,
-        author: userId,
+        author: userObjectId,
       });
       if (!data) throw new NotFoundException('Error deleting post');
       return {

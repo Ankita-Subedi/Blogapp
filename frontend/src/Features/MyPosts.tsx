@@ -4,7 +4,7 @@ import MyPostCard from "@/components/MyPostCard";
 import Pagination from "@/components/Pagination";
 import { deletePost, fetchMyPosts } from "@/services/post"; // import delete API
 import { IPost } from "@/Types/types";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
@@ -45,8 +45,10 @@ const MyPosts = () => {
     const token = localStorage.getItem("token");
 
     if (!token) {
-      window.location.href = "/login";
       toast.error("You need to log in to view your posts!");
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
       return;
     }
 
@@ -61,8 +63,8 @@ const MyPosts = () => {
 
   // ✅ Handle Edit Function
   const handleEdit = (postId: string) => {
-    // Navigate to edit page
-    window.location.href = `/edit-post/${postId}`;
+    const router = useRouter();
+    router.push(`/edit-post/${postId}`);
   };
 
   if (loading) {
