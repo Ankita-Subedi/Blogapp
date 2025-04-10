@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element */
 "use client";
 
 import React, { useState } from "react";
@@ -7,7 +8,6 @@ import { toast } from "react-toastify";
 import { postSchema } from "@/lib/validations/post";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import Image from "next/image";
 
 const AddBlogForm = () => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
@@ -24,7 +24,20 @@ const AddBlogForm = () => {
   const onSubmit = async (data: z.infer<typeof postSchema>) => {
     console.log("Form submitted with data:", data);
 
-    createPost(data)
+    const file = data.photo?.[0];
+
+    if (!file) {
+      toast.error("Please upload a photo!");
+      return;
+    }
+
+    const formDataToSend = {
+      title: data.title,
+      content: data.content,
+      photo: file, // send a real File
+    };
+
+    createPost(formDataToSend)
       .then((res) => {
         console.log(res);
         toast.success("Post created successfully!");
@@ -52,7 +65,7 @@ const AddBlogForm = () => {
           <input
             type="file"
             className="w-full border rounded-lg p-2 text-sm"
-            {...register("image")}
+            {...register("photo")}
             onChange={(e) => {
               const file = e.target.files?.[0];
               if (file) {
@@ -60,14 +73,14 @@ const AddBlogForm = () => {
               }
             }}
           />
-          {typeof errors.image?.message === "string" && (
-            <p className="text-red-500 text-sm">{errors.image.message}</p>
+          {typeof errors.photo?.message === "string" && (
+            <p className="text-red-500 text-sm">{errors.photo.message}</p>
           )}
 
           {/* Preview Image */}
           {previewImage && (
             <div className="mt-2">
-              <Image
+              <img
                 src={previewImage}
                 alt="Preview"
                 className="w-full h-48 object-cover rounded-lg"

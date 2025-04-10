@@ -6,7 +6,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import config from './config/keys';
 import { validate } from './validator/env.validator';
 import { PostsModule } from './posts/posts.module';
-import { FileUploadModule } from './file-upload/file-upload.module';
 
 @Module({
   imports: [
@@ -19,14 +18,13 @@ import { FileUploadModule } from './file-upload/file-upload.module';
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
-      useFactory: async (configService: ConfigService) => ({
+      useFactory: () => ({
         uri: config().mongoURL,
       }),
     }),
     AuthModule,
     UsersModule,
     PostsModule,
-    FileUploadModule,
   ],
   controllers: [],
   providers: [],

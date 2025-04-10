@@ -44,6 +44,7 @@ const PostsPage = () => {
       <div>
         {posts.map((post) => (
           <BlogCard
+            img={post.photo}
             key={post._id}
             title={post.title}
             author={post.author || "Unknown Author"}

@@ -82,6 +82,7 @@ const MyPosts = () => {
             author={post.author?.name || "Unknown Author"}
             description={post.content}
             blogDetailRoute={`/post-detail/${post._id}`}
+            img={post.photo || ""}
             trashApi={() => handleDelete(post._id)}
             editApi={() => handleEdit(post._id)}
           />

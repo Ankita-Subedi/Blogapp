@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
@@ -18,27 +20,33 @@ import { AuthGuard, UserReq } from 'src/auth/guard/auth.guard';
 import { CreatePostDto } from './dto/create-post.dto';
 import { PostService } from './posts.service';
 import { Post as PostModel } from './schemas/post.schema';
+import { multerOptions } from 'src/config/upload.config';
 
 @Controller('posts')
 export class PostController {
   constructor(private postService: PostService) {}
 
+  //CREATE
   @UseGuards(AuthGuard)
-  @UseInterceptors(FileInterceptor('photo'))
+  @UseInterceptors(FileInterceptor('photo', multerOptions))
   @PostMethod('create')
   async create(
     @Body() createPostDto: CreatePostDto,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() photo: Express.Multer.File,
     @Request() req: UserReq,
   ): Promise<{ message: string; blog: PostModel }> {
-    if (file) {
-      createPostDto.photo = file.filename; // Save the filename of the uploaded photo
+    try {
+      if (photo) {
+        const filePath = `uploads/${photo.filename}`;
+        createPostDto.photo = filePath;
+      }
+      return this.postService.create(
+        createPostDto,
+        new Types.ObjectId(req.user.sub),
+      );
+    } catch (error) {
+      throw new BadRequestException(error.message);
     }
-    return this.postService.create(
-      createPostDto,
-      new Types.ObjectId(req.user.sub),
-      file,
-    );
   }
 
   @Get('')
@@ -67,23 +75,31 @@ export class PostController {
 
   @UseGuards(AuthGuard)
   @Put(':id/update')
-  @UseInterceptors(FileInterceptor('photo'))
+  @UseInterceptors(FileInterceptor('photo', multerOptions))
   async update(
-    @Param('id')
-    id: string,
+    @Param('id') id: string,
     @Body() updatePostDto: Partial<CreatePostDto>,
-    @UploadedFile() file: Express.Multer.File,
+    @UploadedFile() photo: Express.Multer.File,
     @Request() req: UserReq,
   ) {
-    if (file) {
-      updatePostDto.photo = file.filename; // Save the filename of the uploaded photo
+    try {
+      if (photo) {
+        const filePath = `uploads/${photo.filename}`;
+        updatePostDto.photo = filePath;
+      }
+
+      // Proceed with updating the post
+      return this.postService.update(id, updatePostDto, req.user.sub);
+    } catch (error) {
+      // Handle any errors
+      throw new BadRequestException(error.message);
     }
-    return this.postService.update(id, updatePostDto, req.user.sub);
   }
 
   @UseGuards(AuthGuard)
   @Delete(':id')
   async delete(@Param('id') id: string, @Request() req: UserReq) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     return this.postService.delete(id, req.user.sub);
   }
 }

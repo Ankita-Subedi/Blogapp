@@ -49,8 +49,8 @@ export const createPost = async (
     const formData = new FormData();
     formData.append("title", iPostData.title);
     formData.append("content", iPostData.content);
-    if (iPostData.image) {
-      formData.append("image", iPostData.image); // image must be appended
+    if (iPostData.photo) {
+      formData.append("photo", iPostData.photo);
     }
 
     const res = await instance.post<ICreatePostResponse>(

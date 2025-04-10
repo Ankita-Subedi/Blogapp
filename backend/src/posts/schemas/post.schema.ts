@@ -9,6 +9,9 @@ export class Post {
   @Prop({ required: true })
   content: string;
 
+  @Prop({ required: true })
+  photo: string;
+
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   author: Types.ObjectId;
 }

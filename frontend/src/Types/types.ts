@@ -10,6 +10,7 @@ export interface IPost {
   updatedAt: string;
   author?: string;
   name: string;
+  photo: string;
 }
 
 export interface IPostResponse {
@@ -25,7 +26,7 @@ export interface IPostResponse {
 export interface IPostData {
   title: string;
   content: string;
-  image?: File;
+  photo: File | null;
 }
 
 export interface ICreatePostResponse {

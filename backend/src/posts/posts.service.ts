@@ -18,33 +18,18 @@ export class PostService {
   async create(
     createPostDto: CreatePostDto,
     author: Types.ObjectId,
-    file: Express.Multer.File,
   ): Promise<{ message: string; blog: Post }> {
     try {
-      if (file) {
-        const allowedMimeTypes = ['image/jpeg', 'image/png'];
-        if (!allowedMimeTypes.includes(file.mimetype)) {
-          throw new BadRequestException(
-            'Invalid file type. Only JPEG and PNG allowed.',
-          );
-        }
-        const maxSize = 5 * 1024 * 1024; // 5 MB
-        if (file.size > maxSize) {
-          throw new BadRequestException('File is too large! Max size is 5 MB.');
-        }
-
-        // Assuming you're saving the file in a 'uploads' folder
-        const filePath = `uploads/${file.filename}`;
-        createPostDto.photo = filePath; // Assigning the file path to the photo field
-      }
       const blog = await this.postModel.create({ ...createPostDto, author });
       return {
         message: 'Post created successfully',
         blog,
       };
     } catch (error) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      throw new BadRequestException(error.message);
+      if (error instanceof Error) {
+        throw new BadRequestException(error.message);
+      }
+      throw new BadRequestException('Something went wrong');
     }
   }
 
@@ -128,26 +113,28 @@ export class PostService {
     return this.postModel.findById(id).populate('author', 'name').exec();
   }
 
-  //UPDATE
   async update(
     id: string,
     updatePostDto: Partial<CreatePostDto>,
     userId: string,
   ) {
-    try {
-      const data = await this.postModel
-        .findOneAndUpdate({ _id: id, author: userId }, updatePostDto, {
-          new: true,
-        })
-        .exec();
-      if (!data) throw new BadRequestException('Error updating post');
-      return {
-        message: `Post with id : ${id} updated successfully`,
-        data,
-      };
-    } catch (error) {
-      throw new BadRequestException(error.message);
+    // Find the post and update it
+    const data = await this.postModel
+      .findOneAndUpdate({ _id: id, author: userId }, updatePostDto, {
+        new: true, // Return the updated document
+      })
+      .exec();
+
+    if (!data) {
+      // If no post is found or the user is not the author, throw an exception
+      throw new BadRequestException('Error updating post or unauthorized');
     }
+
+    // Return a success message with the updated post data
+    return {
+      message: `Post with id: ${id} updated successfully`,
+      data,
+    };
   }
 
   //DELETE

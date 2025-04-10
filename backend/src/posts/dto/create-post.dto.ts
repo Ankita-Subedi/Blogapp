@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty } from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class CreatePostDto {
   @IsString()
@@ -9,8 +9,8 @@ export class CreatePostDto {
   @IsNotEmpty()
   content: string;
 
-  // Add photo field too
   @IsString()
   @IsNotEmpty()
-  photo: string; // This will store the filename or path of the uploaded photo
+  @IsOptional()
+  photo: string;
 }
