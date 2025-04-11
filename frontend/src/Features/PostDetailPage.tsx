@@ -9,6 +9,8 @@ import BlogDetailCard from "@/components/BlogDetailCard";
 
 // Post detail page component
 const PostDetailPage = () => {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
   const [post, setPost] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
@@ -43,23 +45,8 @@ const PostDetailPage = () => {
 
   return (
     <div>
-      {/* <Image
-        alt="thumbnail"
-        src={
-          post.img ||
-          "https://images.pexels.com/photos/31050187/pexels-photo-31050187/free-photo-of-seagulls-on-a-pebble-beach-by-the-water.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load"
-        }
-        width={600}
-        height={400}
-        className="w-[500px] object-cover rounded-md"
-      />
-      <p className="text-2xl">{post.title}</p>
-      <p className="text-gray-500 text-md">
-        By {post.author?.name || "Unknown Author"}
-      </p>
-      <p className="w-[20px]">{post.content}</p> */}
-
       <BlogDetailCard
+        img={post.photo && `${BASE_URL}/${post.photo}`}
         title={post.title}
         author={post.author.name}
         description={post.content}

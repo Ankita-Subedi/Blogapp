@@ -9,12 +9,15 @@ import { useState, useEffect } from "react";
 import { toast } from "react-toastify";
 
 const MyPosts = () => {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   const [posts, setPosts] = useState<IPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const searchParams = useSearchParams();
   const currentPage = Number(searchParams.get("page") || 1);
   const [totalPages, setTotalPages] = useState(1);
+
+  const router = useRouter();
 
   useEffect(() => {
     const getPosts = async () => {
@@ -47,7 +50,7 @@ const MyPosts = () => {
     if (!token) {
       toast.error("You need to log in to view your posts!");
       setTimeout(() => {
-        window.location.href = "/login";
+        router.replace("/login");
       }, 1500);
       return;
     }
@@ -61,10 +64,8 @@ const MyPosts = () => {
     }
   };
 
-  // ✅ Handle Edit Function
   const handleEdit = (postId: string) => {
-    const router = useRouter();
-    router.push(`/edit-post/${postId}`);
+    router.push(`/edit-post/${postId}`); // Navigate to the edit page
   };
 
   if (loading) {
@@ -75,18 +76,21 @@ const MyPosts = () => {
     <div>
       {error && <p>{error}</p>}
       <div>
-        {posts.map((post) => (
-          <MyPostCard
-            key={post._id}
-            title={post.title}
-            author={post.author?.name || "Unknown Author"}
-            description={post.content}
-            blogDetailRoute={`/post-detail/${post._id}`}
-            img={post.photo || ""}
-            trashApi={() => handleDelete(post._id)}
-            editApi={() => handleEdit(post._id)}
-          />
-        ))}
+        {posts.map((post) => {
+          const imageUrl = post.photo ? `${BASE_URL}/${post.photo}` : undefined;
+          return (
+            <MyPostCard
+              key={post._id}
+              title={post.title}
+              author={post.author?.name || "Unknown Author"}
+              description={post.content}
+              blogDetailRoute={`/post-detail/${post._id}`}
+              img={imageUrl}
+              trashApi={() => handleDelete(post._id)}
+              editApi={() => handleEdit(post._id)}
+            />
+          );
+        })}
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPages} />
     </div>

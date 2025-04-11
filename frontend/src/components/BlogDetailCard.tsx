@@ -11,13 +11,16 @@ const BlogDetailCard = ({
 }) => {
   return (
     <div className="flex flex-col gap-2.5 mb-5 items-center md:gap-4 md:my-10">
-      <Image
-        alt="thumbnail"
-        src={img}
-        width={600}
-        height={400}
-        className="w-[300px] md:w-[500px] lg:w-[600px] lg:h-[300px] object-cover rounded-md"
-      />
+      {img && (
+        <Image
+          alt="thumbnail"
+          src={img}
+          width={600}
+          height={400}
+          className="w-[300px] md:w-[500px] lg:w-[600px] h-[200px] object-contain rounded-md bg-gray-100"
+        />
+      )}
+
       <div className="flex flex-col items-center gap-0.5 lg:w-[800px]">
         <p className="text-2xl font-semibold">{title}</p>
         <p>

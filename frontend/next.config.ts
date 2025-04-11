@@ -9,6 +9,12 @@ const nextConfig: NextConfig = {
         port: "",
         pathname: "/**", // Allow all paths
       },
+      {
+        protocol: "http",
+        hostname: "localhost",
+        port: "5000",
+        pathname: "/uploads/**", // Allow images inside /uploads
+      },
     ],
   },
 };

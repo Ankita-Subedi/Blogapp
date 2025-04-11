@@ -15,6 +15,7 @@ export const GetPostWithAutherName = [
       author: {
         $arrayElemAt: ['$users.name', 0],
       },
+      photo: 1,
       createdAt: 1,
       updatedAt: 1,
     },

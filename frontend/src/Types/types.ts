@@ -41,3 +41,22 @@ export interface ICreatePostResponse {
     __v: number;
   };
 }
+
+export interface AddBlogFormProps {
+  isEdit: boolean;
+  postData?: { title: string; content: string; photo: File | string }; // Optional for edit mode
+  onFormSubmit: () => (data: {
+    title: string;
+    content: string;
+    photo: unknown;
+  }) => void;
+}
+
+export interface EditBlogFormProps {
+  postData: {
+    _id: string; // Post Id
+    title: string;
+    content: string;
+    photo: string; // existing image URL
+  };
+}

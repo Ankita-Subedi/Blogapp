@@ -8,6 +8,8 @@ import Pagination from "@/components/Pagination"; // Import Pagination
 import { useSearchParams } from "next/navigation";
 
 const PostsPage = () => {
+  const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
+
   const [posts, setPosts] = useState<IPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -42,16 +44,20 @@ const PostsPage = () => {
     <div>
       {error && <p>{error}</p>}
       <div>
-        {posts.map((post) => (
-          <BlogCard
-            img={post.photo}
-            key={post._id}
-            title={post.title}
-            author={post.author || "Unknown Author"}
-            description={post.content}
-            blogDetailRoute={`/post-detail/${post._id}`}
-          />
-        ))}
+        {posts.map((post) => {
+          const imageUrl = post.photo ? `${BASE_URL}/${post.photo}` : undefined;
+
+          return (
+            <BlogCard
+              key={post._id}
+              img={imageUrl} // <-- Pass the img to BlogCard
+              title={post.title}
+              author={post.author}
+              description={post.description}
+              blogDetailRoute={`/post-detail/${post._id}`}
+            />
+          );
+        })}
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPages} />
     </div>
@@ -59,3 +65,5 @@ const PostsPage = () => {
 };
 
 export default PostsPage;
+
+// blogDetailRoute={`/post-detail/${post._id}`}

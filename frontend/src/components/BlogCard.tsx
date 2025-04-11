@@ -1,12 +1,11 @@
 "Use client";
 
-import { Pencil, Trash } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
 
 const BlogCard = ({
-  img = "https://images.pexels.com/photos/31050187/pexels-photo-31050187/free-photo-of-seagulls-on-a-pebble-beach-by-the-water.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load",
+  img = "https://images.pexels.com/photos/9992338/pexels-photo-9992338.jpeg?auto=compress&cs=tinysrgb&w=600",
   title = "Title",
   author = "Author",
   description = "Description",
@@ -19,8 +18,9 @@ const BlogCard = ({
         src={img}
         width={600}
         height={400}
-        className="w-[300px] object-cover rounded-md"
+        className="w-[300px] h-[200px] object-contain rounded-md bg-gray-100"
       />
+
       <div>
         <div className="flex flex-col gap-0.5 lg:w-[800px]">
           <p className="text-2xl font-semibold">{title}</p>

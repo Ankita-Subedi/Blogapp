@@ -9,6 +9,8 @@ import { Model, Types } from 'mongoose';
 import { Post, PostDocument } from './schemas/post.schema';
 import { CreatePostDto } from './dto/create-post.dto';
 import { GetPostWithAutherName } from './pipelines/get-post-with-auther.pipeline';
+import { unlink } from 'fs/promises'; // ✅ Import Node.js 'fs' promises
+import { join } from 'path';
 
 @Injectable()
 export class PostService {
@@ -52,11 +54,10 @@ export class PostService {
     const totalPages = Math.ceil(totalPosts / limit); // Calculate total pages
 
     const posts = await this.postModel
-      .aggregate(GetPostWithAutherName)
+      .aggregate([...GetPostWithAutherName, { $sort: { createdAt: -1 } }])
       //.populate('author', 'name')
       .skip(skip)
       .limit(limit)
-      .sort({ createdAt: -1 })
       .exec();
 
     return {
@@ -113,27 +114,50 @@ export class PostService {
     return this.postModel.findById(id).populate('author', 'name').exec();
   }
 
+  //Update your post
   async update(
     id: string,
     updatePostDto: Partial<CreatePostDto>,
     userId: string,
   ) {
-    // Find the post and update it
-    const data = await this.postModel
-      .findOneAndUpdate({ _id: id, author: userId }, updatePostDto, {
-        new: true, // Return the updated document
-      })
-      .exec();
+    // find the existing post
+    const existingPost = await this.postModel.findOne({
+      _id: id,
+      author: new Types.ObjectId(userId),
+    });
 
-    if (!data) {
-      // If no post is found or the user is not the author, throw an exception
-      throw new BadRequestException('Error updating post or unauthorized');
+    if (!existingPost) {
+      throw new BadRequestException('Post not found or unauthorized.');
     }
 
-    // Return a success message with the updated post data
+    // If user uploaded a new photo AND old photo exists, delete old photo
+    if (updatePostDto.photo && existingPost.photo) {
+      const oldPhotoPath = join(process.cwd(), existingPost.photo); // Make absolute path
+      try {
+        await unlink(oldPhotoPath); // ✅ Delete the old photo
+        console.log('Old photo deleted successfully');
+      } catch (error) {
+        console.error('Error deleting old photo:', error.message);
+        // Optional: Don't throw error here, because even if old photo delete fails, we can continue
+      }
+    }
+
+    // Now update the post
+    const updatedPost = await this.postModel
+      .findOneAndUpdate(
+        { _id: id, author: new Types.ObjectId(userId) },
+        updatePostDto,
+        { new: true }, // return updated post
+      )
+      .exec();
+
+    if (!updatedPost) {
+      throw new BadRequestException('Error updating post.');
+    }
+
     return {
       message: `Post with id: ${id} updated successfully`,
-      data,
+      data: updatedPost,
     };
   }
 

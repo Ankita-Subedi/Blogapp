@@ -102,11 +102,38 @@ export const deletePost = async (id: string) => {
   }
 };
 
-export const editPost = async (id: string, updatedData: any) => {
+// UPDATE A POST
+export const updatePost = async (
+  postId: string, // Post ID to update
+  iPostData: IPostData // Updated post data
+): Promise<ICreatePostResponse> => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    throw new Error("No token found. Please login.");
+  }
+
   try {
-    const response = await instance.put(`/posts/${id}/update`, updatedData);
-    return response.data;
-  } catch (error) {
-    throw error;
+    const formData = new FormData();
+    formData.append("title", iPostData.title);
+    formData.append("content", iPostData.content);
+    if (iPostData.photo) {
+      formData.append("photo", iPostData.photo); // Optional photo update
+    }
+
+    const res = await instance.put<ICreatePostResponse>(
+      `/posts/${postId}/update`, // Your endpoint should accept a post ID
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    return res.data;
+  } catch (err) {
+    throw err;
   }
 };
