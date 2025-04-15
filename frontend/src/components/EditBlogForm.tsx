@@ -6,74 +6,64 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "react-toastify";
 import { z } from "zod";
-import { useRouter } from "next/navigation"; // <-- import router for redirect
-import { postSchema } from "@/lib/validations/post";
+import { useRouter } from "next/navigation";
+import { editPostSchema } from "@/lib/validations/post";
 import { updatePost } from "@/services/post";
 import { EditBlogFormProps } from "@/Types/types";
+import { env } from "@/constants/env";
 
 const EditBlogForm: React.FC<EditBlogFormProps> = ({ postData }) => {
   const [previewImage, setPreviewImage] = useState<string | null>(null);
-  const router = useRouter(); // <-- initialize router
+  const [selectedFileName, setSelectedFileName] = useState<string | null>(null);
+
+  const router = useRouter();
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(postSchema),
+    resolver: zodResolver(editPostSchema),
     defaultValues: {
       title: postData?.title || "",
       content: postData?.content || "",
+      hasExistingPhoto: !!postData.photo,
     },
   });
 
   useEffect(() => {
-    if (postData?.photo) {
-      let imageUrl = "";
-
-      if (typeof postData.photo === "string") {
-        // If the photo already includes uploads/.. then add API URL
-        if (postData.photo.startsWith("uploads/")) {
-          imageUrl = `${process.env.NEXT_PUBLIC_API_URL}/${postData.photo}`;
-        } else {
-          // In case it's already a full URL, no need to prepend
-          imageUrl = postData.photo;
-        }
-      } else {
-        // If it's a File object (during edit form)
-        imageUrl = URL.createObjectURL(postData.photo);
-      }
+    if (postData?.photo && typeof postData.photo === "string") {
+      const imageUrl = postData.photo.startsWith("uploads/")
+        ? `${env.NEXT_PUBLIC_BASE_URL}/${postData.photo}`
+        : postData.photo;
 
       setPreviewImage(imageUrl);
     }
   }, [postData]);
 
-  console.log(postData);
+  const onSubmit = async (data: z.infer<typeof editPostSchema>) => {
+    const file = data.photo?.[0];
 
-  const onSubmit = async (data: z.infer<typeof postSchema>) => {
-    try {
-      console.log("Updating post with data:", data);
+    const formDataToSend = {
+      title: data.title ?? postData.title,
+      content: data.content ?? postData.content,
+      photo: file || postData.photo,
+    };
 
-      const file = data.photo?.[0];
-
-      const formDataToSend = {
-        title: data.title,
-        content: data.content,
-        photo: file || postData.photo, // If no new photo uploaded, ignore
-      };
-
-      await updatePost(postData._id, formDataToSend);
-
-      toast.success("Post updated successfully! 🎉");
-
-      // Redirect user after successful update
-      router.push("/my-posts"); //
-    } catch (error) {
-      console.error("Error updating post:", error);
-      toast.error("Failed to update post. Try again.");
+    if (file) {
+      formDataToSend.photo = file;
     }
+    updatePost(postData._id, formDataToSend)
+      .then(() => {
+        toast.success("Post updated successfully! 🎉");
+        router.push("/my-posts");
+      })
+      .catch((error) => {
+        console.error("Error updating post:", error);
+        toast.error(error.response.data.message);
+      });
   };
-
+  console.log(errors);
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
@@ -103,13 +93,46 @@ const EditBlogForm: React.FC<EditBlogFormProps> = ({ postData }) => {
 
       <div>
         <label className="block mb-1 font-medium">Photo</label>
-        <input type="file" {...register("photo")} accept="image/*" />
+        <input
+          type="file"
+          accept="image/*"
+          {...register("photo")}
+          onChange={(e) => {
+            const file = e.target.files?.[0];
+            if (file) {
+              console.log(file);
+              const imageUrl = URL.createObjectURL(file);
+              setPreviewImage(imageUrl);
+              setSelectedFileName(file.name);
+            } else {
+              setSelectedFileName(null);
+            }
+          }}
+        />
+        {selectedFileName ? (
+          <p className="text-sm text-gray-600 mt-1">
+            Selected file:{" "}
+            <span className="font-medium">{selectedFileName}</span>
+          </p>
+        ) : postData.photo ? (
+          <p className="text-sm text-gray-600 mt-1">
+            Current file:{" "}
+            <span className="font-medium">
+              {postData.photo.split("/").pop()}
+            </span>
+          </p>
+        ) : null}
+
         {previewImage && (
           <img
             src={previewImage}
             alt="Preview"
-            className="w-32 h-32 object-cover rounded-md"
+            className="w-32 h-32 object-cover rounded-md mt-2"
           />
+        )}
+
+        {errors.photo?.message == "string" && (
+          <p className="text-red-500 text-sm">{errors.photo.message}</p>
         )}
       </div>
 

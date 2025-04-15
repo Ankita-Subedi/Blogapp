@@ -21,7 +21,7 @@ const MyPostCard = ({
         src={img}
         width={600}
         height={400}
-        className="w-[300px] md:w-[500px] lg:w-[600px] h-[200px] object-contain rounded-md bg-gray-100"
+        className="w-[300px] md:w-[500px] lg:w-[600px] h-[200px] object-cover rounded-md bg-gray-100"
       />
 
       <div>

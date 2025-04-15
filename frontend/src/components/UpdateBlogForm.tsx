@@ -8,7 +8,6 @@ const UpdatePost = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    console.log("Updated Post:", { title, content });
   };
 
   return (

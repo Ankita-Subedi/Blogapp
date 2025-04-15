@@ -44,7 +44,7 @@ const PostDetailPage = () => {
   }
 
   return (
-    <div>
+    <div className="mt-4">
       <BlogDetailCard
         img={post.photo && `${BASE_URL}/${post.photo}`}
         title={post.title}

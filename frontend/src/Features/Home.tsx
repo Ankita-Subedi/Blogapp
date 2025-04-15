@@ -42,18 +42,17 @@ const PostsPage = () => {
 
   return (
     <div>
-      {error && <p>{error}</p>}
-      <div>
+      <div className="mt-4">
         {posts.map((post) => {
           const imageUrl = post.photo ? `${BASE_URL}/${post.photo}` : undefined;
 
           return (
             <BlogCard
               key={post._id}
-              img={imageUrl} // <-- Pass the img to BlogCard
+              img={imageUrl}
               title={post.title}
               author={post.author}
-              description={post.description}
+              description={post.content}
               blogDetailRoute={`/post-detail/${post._id}`}
             />
           );

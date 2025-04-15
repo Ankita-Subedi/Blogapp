@@ -17,7 +17,7 @@ const BlogDetailCard = ({
           src={img}
           width={600}
           height={400}
-          className="w-[300px] md:w-[500px] lg:w-[600px] h-[200px] object-contain rounded-md bg-gray-100"
+          className="w-[300px] md:w-[500px] lg:w-[600px] h-[350px] object-cover rounded-md bg-gray-100"
         />
       )}
 
@@ -26,7 +26,7 @@ const BlogDetailCard = ({
         <p>
           <span className="font-semibold">Author:</span> {author}
         </p>
-        <p className=" max-w-[300px] md:max-w-[400px] lg:max-w-[700px]">
+        <p className=" max-w-[300px] md:max-w-[400px] lg:max-w-[700px] text-justify">
           {description}
         </p>
       </div>
